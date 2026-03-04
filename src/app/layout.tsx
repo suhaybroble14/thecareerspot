@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
 const playfair = Playfair_Display({
   variable: "--font-serif",
@@ -19,7 +17,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "The Spot | Work - Create - Connect",
   description:
-    "The Career Spot is a hybrid career hub combining physical spaces and digital tools to empower professionals. Workshops, mentorship, coworking, and community events.",
+    "The Career Spot is a career hub in Bristol with coworking, workshops, mentorship, and community events. Day passes and monthly memberships available.",
   keywords: [
     "career development",
     "coworking",
@@ -32,9 +30,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: "The Spot | Work - Create - Connect",
     description:
-      "A hybrid career hub combining physical spaces and digital tools to empower professionals.",
+      "A career hub in Bristol with coworking, workshops, mentorship, and community events.",
     type: "website",
-    url: "https://thecareerspot.com",
+    url: "https://thecareerspot.uk",
   },
 };
 
@@ -45,11 +43,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${playfair.variable} ${inter.variable}`}>
-      <body className="antialiased">
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
-      </body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }
