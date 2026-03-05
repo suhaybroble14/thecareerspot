@@ -12,6 +12,7 @@ export default function MembershipApplyPage() {
     phone: "",
   });
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [otherText, setOtherText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -26,7 +27,9 @@ export default function MembershipApplyPage() {
         fullName: formData.fullName,
         email: formData.email,
         phone: formData.phone || undefined,
-        message: selectedServices.length > 0 ? `Interested in: ${selectedServices.join(", ")}` : undefined,
+        message: selectedServices.length > 0 || otherText
+          ? `Interested in: ${[...selectedServices, ...(otherText ? [`Other: ${otherText}`] : [])].join(", ")}`
+          : undefined,
       });
 
       if (result.success) {
@@ -174,9 +177,10 @@ export default function MembershipApplyPage() {
                   </div>
 
                   <div>
-                    <p className="block text-xs tracking-widest uppercase text-forest/60 mb-3">
+                    <p className="block text-xs tracking-widest uppercase text-forest/60 mb-1">
                       Which facilities are you interested in?
                     </p>
+                    <p className="text-xs text-forest/40 mb-3">Tick all that apply</p>
                     <div className="space-y-3">
                       {[
                         "Solo desk space",
@@ -201,6 +205,34 @@ export default function MembershipApplyPage() {
                           <span className="text-sm text-forest/70 group-hover:text-forest transition-colors">{service}</span>
                         </label>
                       ))}
+
+                      {/* Other */}
+                      <label className="flex items-start gap-3 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={selectedServices.includes("Other")}
+                          onChange={(e) => {
+                            setSelectedServices(
+                              e.target.checked
+                                ? [...selectedServices, "Other"]
+                                : selectedServices.filter((s) => s !== "Other")
+                            );
+                            if (!e.target.checked) setOtherText("");
+                          }}
+                          className="mt-0.5 accent-camel w-4 h-4 shrink-0"
+                        />
+                        <span className="text-sm text-forest/70 group-hover:text-forest transition-colors">Other</span>
+                      </label>
+
+                      {selectedServices.includes("Other") && (
+                        <input
+                          type="text"
+                          value={otherText}
+                          onChange={(e) => setOtherText(e.target.value)}
+                          placeholder="Tell us what you need"
+                          className="w-full bg-white border border-forest/10 px-5 py-3.5 text-sm text-forest placeholder:text-forest/30 focus:outline-none focus:border-camel transition-colors"
+                        />
+                      )}
                     </div>
                   </div>
 

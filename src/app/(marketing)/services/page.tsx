@@ -32,8 +32,8 @@ const services = [
     description:
       "A workspace that actually feels like somewhere you'd want to spend your day. No cubicles, no harsh lighting. Just a warm, well designed space where you can focus, get creative, and talk to good people.",
     features: [
-      "Flexible hot-desking with no long-term commitment",
-      "High-speed wifi and power throughout",
+      "Flexible desk space with no long term commitment",
+      "Fast wifi and power throughout",
       "Quiet zones and collaborative areas",
       "Tea, coffee, and a genuine welcome",
     ],
@@ -50,9 +50,9 @@ const services = [
     description:
       "One to one guidance from mentors who genuinely care about where you're going. This isn't a tick box matching exercise. We pair you with people who've walked similar paths and can give you honest, specific advice that actually helps.",
     features: [
-      "One-to-one mentoring sessions",
-      "Carefully matched based on goals and background",
-      "Ongoing relationship, not a one-off chat",
+      "Personal mentoring sessions",
+      "Carefully matched based on your goals and background",
+      "An ongoing relationship, not a single chat",
       "Mentors from diverse industries and backgrounds",
     ],
     icon: (

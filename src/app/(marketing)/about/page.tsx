@@ -104,9 +104,9 @@ export default function AboutPage() {
               </AnimateIn>
               <AnimateIn delay={0.3}>
                 <p className="text-forest/70 text-lg leading-relaxed mb-6">
-                  We&apos;re founder-led, not corporate-driven. Every decision
-                  is filtered through a single question: does this serve our
-                  community? If not, we don&apos;t do it.
+                  We were built by people, not a board. Every decision comes
+                  back to one question: does this serve our community? If not,
+                  we don&apos;t do it.
                 </p>
               </AnimateIn>
               <AnimateIn delay={0.4}>
