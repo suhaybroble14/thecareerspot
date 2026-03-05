@@ -2,7 +2,6 @@ import Link from "next/link";
 import Image from "next/image";
 import AnimateIn from "@/components/AnimateIn";
 import ImageSlider from "@/components/ImageSlider";
-import HireForm from "@/components/HireForm";
 
 export default function Home() {
 
@@ -104,6 +103,10 @@ export default function Home() {
                     <span className="text-camel mt-1">✓</span>
                     <span>Pass active for 10 hours</span>
                   </li>
+                  <li className="flex items-start gap-3 text-sm text-forest/80">
+                    <span className="text-camel mt-1">✓</span>
+                    <span>PlayStation 5 &amp; TV access</span>
+                  </li>
                 </ul>
 
                 <Link
@@ -159,6 +162,10 @@ export default function Home() {
                     <span className="text-camel mt-1">✓</span>
                     <span>Priority access to the workspace</span>
                   </li>
+                  <li className="flex items-start gap-3 text-sm text-forest/80">
+                    <span className="text-camel mt-1">✓</span>
+                    <span>PlayStation 5 &amp; TV access</span>
+                  </li>
                 </ul>
 
                 <Link
@@ -196,7 +203,7 @@ export default function Home() {
           </AnimateIn>
 
           <AnimateIn delay={0.2}>
-            <ImageSlider images={["/wih1.jpg", "/wih2.jpg"]} />
+            <ImageSlider images={["/wih1.jpg", "/wih2.jpg", "/wih4.jpg", "/wih6.jpg"]} />
           </AnimateIn>
         </div>
       </section>
@@ -213,16 +220,16 @@ export default function Home() {
           <div className="grid sm:grid-cols-2 gap-12 max-w-2xl">
             {[
               { name: "Abdijabar Osman", role: "Co-Founder", image: "/Founder_2.jpeg" },
-              { name: "Mustafa Mirreh", role: "Co-Founder", image: "/Founder_1.jpeg" },
+              { name: "Mustafa Mirreh", role: "Co-Founder", image: "/IMG_9022.jpg", zoom: true },
             ].map((founder, i) => (
               <AnimateIn key={i} delay={0.2 + i * 0.1}>
                 <div>
-                  <div className="aspect-square bg-forest mb-4 overflow-hidden relative rounded-full">
+                  <div className="aspect-square bg-cream mb-4 overflow-hidden relative rounded-full">
                     <Image
                       src={founder.image}
                       alt={founder.name}
                       fill
-                      className="object-cover"
+                      className={"zoom" in founder && founder.zoom ? "object-cover scale-125" : "object-cover"}
                     />
                   </div>
                   <h3 className="font-serif text-lg text-forest mb-1">
@@ -274,9 +281,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Hire the Space */}
-      <HireForm />
 
       {/* Newsletter CTA */}
       <section className="py-24 md:py-32 bg-forest text-cream">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import AnimateIn from "@/components/AnimateIn";
 import SectionHeading from "@/components/SectionHeading";
 
@@ -112,122 +113,62 @@ export default function EventsPage() {
         </div>
       </section>
 
-      {/* Events Listing */}
+      {/* Events coming soon */}
       <section className="py-24 md:py-32 bg-cream">
         <div className="max-w-6xl mx-auto px-6">
           <SectionHeading
             label="Upcoming"
             title="What's Coming Up"
-            description="Dates are being finalised. Register your interest to hear about it first."
+            description="We're putting together something good. Drop your email and you'll be the first to know when dates are confirmed."
           />
 
-          <div className="grid md:grid-cols-2 gap-8">
-            {upcomingEvents.map((event, i) => (
-              <AnimateIn key={event.id} delay={i * 0.08}>
-                <div className="bg-white p-8 h-full flex flex-col group hover:shadow-lg transition-shadow duration-300">
-                  <div className="flex items-center gap-3 mb-4">
-                    <span
-                      className={`text-xs tracking-wider uppercase px-3 py-1 ${
-                        typeColors[event.type] || "bg-cream text-forest"
-                      }`}
-                    >
-                      {event.type}
-                    </span>
-                    <span className="text-xs text-forest/40">{event.spots}</span>
-                  </div>
+          {/* Email signup */}
+          <AnimateIn delay={0.3}>
+            <div className="bg-forest text-cream p-8 md:p-12 max-w-2xl mx-auto text-center">
+              <h3 className="font-serif text-2xl mb-3">Be the first to know</h3>
+              <p className="text-cream/60 text-sm mb-8">Leave your email and we&apos;ll notify you as soon as events are confirmed.</p>
+              {bookingSubmitted.length > 0 ? (
+                <p className="text-camel font-medium tracking-wide">You&apos;re on the list. We&apos;ll be in touch!</p>
+              ) : (
+                <form onSubmit={handleBook} className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="email"
+                    placeholder="Your email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="flex-1 bg-transparent border border-cream/20 px-5 py-4 text-cream placeholder:text-cream/40 focus:outline-none focus:border-camel transition-colors text-sm"
+                  />
+                  <button
+                    type="submit"
+                    className="bg-camel text-forest px-8 py-4 text-sm tracking-widest uppercase hover:bg-camel/90 transition-colors shrink-0"
+                  >
+                    Notify Me
+                  </button>
+                </form>
+              )}
+            </div>
+          </AnimateIn>
+        </div>
+      </section>
 
-                  <h3 className="font-serif text-xl mb-2">{event.title}</h3>
-
-                  <div className="flex items-center gap-4 text-xs text-forest/50 mb-4">
-                    <span>{event.date}</span>
-                    <span className="w-1 h-1 rounded-full bg-forest/30" />
-                    <span>{event.time}</span>
-                  </div>
-
-                  <p className="text-forest/60 text-sm leading-relaxed mb-6 flex-grow">
-                    {event.description}
-                  </p>
-
-                  {bookingSubmitted.includes(event.id) ? (
-                    <div className="bg-sage/10 border border-sage/20 p-4">
-                      <p className="text-forest text-sm font-medium">
-                        Interest registered
-                      </p>
-                      <p className="text-forest/50 text-xs mt-1">
-                        We&apos;ll notify you when details are confirmed.
-                      </p>
-                    </div>
-                  ) : bookingEventId === event.id ? (
-                    <form onSubmit={handleBook} className="space-y-3">
-                      <input
-                        type="text"
-                        placeholder="Your name"
-                        required
-                        value={formData.name}
-                        onChange={(e) =>
-                          setFormData({ ...formData, name: e.target.value })
-                        }
-                        className="w-full bg-cream border border-forest/10 px-4 py-3 text-sm focus:outline-none focus:border-camel transition-colors"
-                      />
-                      <input
-                        type="email"
-                        placeholder="Your email"
-                        required
-                        value={formData.email}
-                        onChange={(e) =>
-                          setFormData({ ...formData, email: e.target.value })
-                        }
-                        className="w-full bg-cream border border-forest/10 px-4 py-3 text-sm focus:outline-none focus:border-camel transition-colors"
-                      />
-                      <div className="flex gap-3">
-                        <button
-                          type="submit"
-                          className="bg-forest text-cream text-sm tracking-widest uppercase px-6 py-3 hover:bg-forest-light transition-colors flex-1"
-                        >
-                          Register Interest
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setBookingEventId(null)}
-                          className="border border-forest/20 text-forest text-sm px-4 py-3 hover:bg-forest/5 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
-                    <button
-                      onClick={() => setBookingEventId(event.id)}
-                      className="bg-forest text-cream text-sm tracking-widest uppercase px-6 py-3 hover:bg-forest-light transition-colors w-full"
-                    >
-                      Register Interest
-                    </button>
-                  )}
+      {/* Past events */}
+      <section className="py-24 md:py-32 bg-white">
+        <div className="max-w-6xl mx-auto px-6">
+          <SectionHeading
+            label="Looking Back"
+            title="Past Events"
+            description="A look at some of what we've hosted so far."
+          />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {["/event1.jpeg", "/event2.jpeg", "/event3.jpeg", "/event4.jpeg"].map((src, i) => (
+              <AnimateIn key={i} delay={i * 0.1}>
+                <div className="aspect-square relative overflow-hidden">
+                  <Image src={src} alt={`Past event ${i + 1}`} fill className="object-cover hover:scale-105 transition-transform duration-500" />
                 </div>
               </AnimateIn>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Past events placeholder */}
-      <section className="py-24 md:py-32 bg-white">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <SectionHeading
-            label="Looking Back"
-            title="Past Events"
-            description="Recaps and resources from past workshops, talks, and events will be shared here."
-          />
-          <AnimateIn delay={0.2}>
-            <div className="bg-cream p-12 border border-forest/5">
-              <p className="text-forest/40 font-serif text-lg">
-                Past event recaps coming soon.
-              </p>
-              <p className="text-forest/30 text-sm mt-2">
-                Follow us on social media to stay updated.
-              </p>
-            </div>
-          </AnimateIn>
         </div>
       </section>
 

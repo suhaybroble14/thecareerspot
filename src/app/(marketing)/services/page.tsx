@@ -27,6 +27,7 @@ const services = [
   },
   {
     id: "coworking",
+    image: "/coworking.jpeg",
     title: "Coworking & Hot Desks",
     description:
       "A workspace that actually feels like somewhere you'd want to spend your day. No cubicles, no harsh lighting. Just a warm, well designed space where you can focus, get creative, and talk to good people.",

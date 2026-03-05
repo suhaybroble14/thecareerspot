@@ -10,8 +10,8 @@ export default function MembershipApplyPage() {
     fullName: "",
     email: "",
     phone: "",
-    message: "",
   });
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -26,7 +26,7 @@ export default function MembershipApplyPage() {
         fullName: formData.fullName,
         email: formData.email,
         phone: formData.phone || undefined,
-        message: formData.message || undefined,
+        message: selectedServices.length > 0 ? `Interested in: ${selectedServices.join(", ")}` : undefined,
       });
 
       if (result.success) {
@@ -174,22 +174,34 @@ export default function MembershipApplyPage() {
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="message"
-                      className="block text-xs tracking-widest uppercase text-forest/60 mb-2"
-                    >
-                      Why do you want to join?
-                    </label>
-                    <textarea
-                      id="message"
-                      rows={4}
-                      value={formData.message}
-                      onChange={(e) =>
-                        setFormData({ ...formData, message: e.target.value })
-                      }
-                      className="w-full bg-white border border-forest/10 px-5 py-4 text-sm text-forest placeholder:text-forest/30 focus:outline-none focus:border-camel transition-colors resize-none"
-                      placeholder="Tell us a bit about yourself and what you're working on (optional)"
-                    />
+                    <p className="block text-xs tracking-widest uppercase text-forest/60 mb-3">
+                      Which facilities are you interested in?
+                    </p>
+                    <div className="space-y-3">
+                      {[
+                        "Solo desk space",
+                        "Collaborative desk space",
+                        "Dual monitors",
+                        "Projector",
+                        "PS5 & TV",
+                      ].map((service) => (
+                        <label key={service} className="flex items-start gap-3 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={selectedServices.includes(service)}
+                            onChange={(e) => {
+                              setSelectedServices(
+                                e.target.checked
+                                  ? [...selectedServices, service]
+                                  : selectedServices.filter((s) => s !== service)
+                              );
+                            }}
+                            className="mt-0.5 accent-camel w-4 h-4 shrink-0"
+                          />
+                          <span className="text-sm text-forest/70 group-hover:text-forest transition-colors">{service}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
 
                   {error && <p className="text-red-600 text-sm">{error}</p>}

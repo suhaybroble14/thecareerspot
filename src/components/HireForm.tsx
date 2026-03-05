@@ -43,7 +43,7 @@ export default function HireForm() {
         </AnimateIn>
         <AnimateIn delay={0.2}>
           <p className="text-forest/60 text-lg mb-12 leading-relaxed">
-            From graduation parties to workshops, team days to creative sessions — the space is available to hire. Get in touch and we&apos;ll sort the details.
+            Graduation parties, workshops, team days, creative sessions. Whatever you need the space for, get in touch and we&apos;ll make it work.
           </p>
         </AnimateIn>
 
