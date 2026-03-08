@@ -241,6 +241,49 @@ export async function approveRefund(bookingId: string) {
   return { success: true };
 }
 
+export async function getRevenueSummary() {
+  const supabase = createAdminClient();
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+
+  const { data: bookings } = await supabase
+    .from("bookings")
+    .select("amount_paid, booking_date, created_at, status, profiles:user_id(full_name, email)")
+    .in("status", ["confirmed", "checked_in", "cancellation_requested"])
+    .gt("amount_paid", 0)
+    .order("created_at", { ascending: false });
+
+  const allBookings = bookings || [];
+  const totalRevenue = allBookings.reduce((sum, b) => sum + (b.amount_paid || 0), 0);
+  const thisMonthRevenue = allBookings
+    .filter((b) => b.booking_date >= startOfMonth)
+    .reduce((sum, b) => sum + (b.amount_paid || 0), 0);
+
+  return {
+    totalRevenue,
+    thisMonthRevenue,
+    totalCount: allBookings.length,
+    recentBookings: allBookings.slice(0, 30),
+  };
+}
+
+export async function getHireEnquiries() {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from("leads")
+    .select("*")
+    .eq("source", "hire_enquiry")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Fetch hire enquiries error:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
 export async function denyRefund(bookingId: string) {
   const supabase = createAdminClient();
   const authClient = await createClient();
