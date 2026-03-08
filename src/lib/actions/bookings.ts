@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { Booking } from "@/lib/supabase/types";
 
 export async function getMyBookings(): Promise<Booking[]> {
@@ -50,6 +51,56 @@ export async function getUpcomingBooking(): Promise<Booking | null> {
   }
 
   return (data as Booking) || null;
+}
+
+export async function requestRefund(bookingId: string, reason: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  const { data: booking } = await supabase
+    .from("bookings")
+    .select("*")
+    .eq("id", bookingId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!booking) return { success: false, error: "Booking not found" };
+  if (booking.status !== "confirmed") {
+    return { success: false, error: "Only confirmed bookings can be refunded" };
+  }
+
+  const today = new Date().toISOString().split("T")[0];
+  if (booking.booking_date <= today) {
+    return { success: false, error: "Cannot request a refund for today or past dates" };
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("bookings")
+    .update({ status: "cancellation_requested", updated_at: new Date().toISOString() })
+    .eq("id", bookingId);
+
+  if (error) return { success: false, error: "Failed to request refund" };
+
+  // Notify admin
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, email")
+    .eq("id", user.id)
+    .single();
+
+  const { sendEmail } = await import("@/lib/email/sendEmail");
+  sendEmail({
+    to: "thecareerspot0@gmail.com",
+    subject: `Refund request — ${booking.booking_date}`,
+    html: `<p><strong>${profile?.full_name || profile?.email}</strong> (${profile?.email}) has requested a refund for their day pass on <strong>${booking.booking_date}</strong>.</p><p><strong>Reason:</strong> ${reason}</p><p>Review it in the <a href="${process.env.NEXT_PUBLIC_APP_URL}/admin/refunds">admin panel</a>.</p>`,
+  }).catch(() => {});
+
+  return { success: true };
 }
 
 export async function cancelBooking(bookingId: string) {

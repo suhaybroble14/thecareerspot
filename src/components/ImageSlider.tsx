@@ -26,7 +26,14 @@ export default function ImageSlider({ images }: Props) {
             key={src}
             className={`absolute inset-0 transition-opacity duration-500 ${i === current ? "opacity-100" : "opacity-0"}`}
           >
-            <Image src={src} alt="The Career Spot" fill className="object-cover" />
+            <Image
+              src={src}
+              alt="The Career Spot"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 60vw"
+              priority={i === 0}
+            />
           </div>
         ))}
       </div>

@@ -68,7 +68,7 @@ export type Booking = {
   qr_used: boolean;
   stripe_session_id: string | null;
   amount_paid: number;
-  status: "pending" | "confirmed" | "cancelled" | "checked_in";
+  status: "pending" | "confirmed" | "cancelled" | "checked_in" | "cancellation_requested";
   created_at: string;
   updated_at: string;
 };

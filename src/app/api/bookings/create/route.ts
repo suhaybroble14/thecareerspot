@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getAvailability } from "@/lib/capacity";
-import { checkRateLimit } from "@/lib/rateLimit";
 import crypto from "crypto";
 
 const stripeConfigured =
@@ -18,15 +17,6 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
-    }
-
-    // Rate limit: 10 booking attempts per user per hour
-    const { allowed } = await checkRateLimit(`booking:${user.id}`, 10, 60);
-    if (!allowed) {
-      return NextResponse.json(
-        { error: "Too many booking attempts. Please try again later." },
-        { status: 429 }
-      );
     }
 
     const { date } = await request.json();
@@ -101,13 +91,24 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const session = await createDayPassCheckout(
-        user.id,
-        user.email!,
-        booking.id,
-        date,
-        appUrl
-      );
+      let session;
+      try {
+        session = await createDayPassCheckout(
+          user.id,
+          user.email!,
+          booking.id,
+          date,
+          appUrl
+        );
+      } catch (stripeError) {
+        // Clean up the pending booking so the user can try again
+        await admin.from("bookings").delete().eq("id", booking.id);
+        console.error("Stripe checkout error:", stripeError);
+        return NextResponse.json(
+          { error: "Payment setup failed. Please try again." },
+          { status: 500 }
+        );
+      }
 
       await admin
         .from("bookings")

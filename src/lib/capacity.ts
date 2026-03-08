@@ -36,7 +36,7 @@ export async function getAvailability(date: string): Promise<DayAvailability> {
     .from("bookings")
     .select("*", { count: "exact", head: true })
     .eq("booking_date", date)
-    .in("status", ["confirmed", "checked_in"]);
+    .in("status", ["confirmed", "checked_in", "cancellation_requested"]);
 
   const monthlyCount = activeMonthly ?? 0;
   const dayPassCount = bookedDayPasses ?? 0;
@@ -86,7 +86,7 @@ export async function getAvailabilityRange(
     .select("booking_date")
     .gte("booking_date", startDate)
     .lte("booking_date", endDate)
-    .in("status", ["confirmed", "checked_in"]);
+    .in("status", ["confirmed", "checked_in", "cancellation_requested"]);
 
   // Count bookings per date
   const bookingCounts = new Map<string, number>();

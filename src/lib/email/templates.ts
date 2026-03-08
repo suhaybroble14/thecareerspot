@@ -168,21 +168,48 @@ export function membershipActivatedEmail(name: string, expiresAt: string) {
 export function dayPassConfirmationEmail(
   name: string,
   bookingDate: string,
-  qrCode: string
+  qrCode: string,
+  paymentRef?: string
 ) {
   const formattedDate = new Date(bookingDate + "T00:00:00").toLocaleDateString(
     "en-GB",
     { weekday: "long", day: "numeric", month: "long", year: "numeric" }
   );
 
+  const paymentDate = new Date().toLocaleDateString("en-GB", {
+    day: "numeric", month: "long", year: "numeric"
+  });
+
+  const ref = paymentRef ? paymentRef.slice(-8).toUpperCase() : qrCode.slice(0, 8).toUpperCase();
+
   return layout(`
-    <h1>Day pass confirmed</h1>
+    <h1>Payment receipt</h1>
     <p>Hi ${name || "there"},</p>
-    <p>Your day pass for The Spot is confirmed. Here are the details:</p>
+    <p>Thank you for your payment. Your day pass for The Spot is confirmed.</p>
     <div class="info-box">
       <table style="width: 100%; border-collapse: collapse;">
         <tr>
-          <td style="padding: 8px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(47,61,56,0.4);">Date</td>
+          <td style="padding: 8px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(47,61,56,0.4);">Receipt ref</td>
+          <td style="padding: 8px 0; font-size: 14px; text-align: right; font-family: monospace;">#${ref}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(47,61,56,0.4);">Payment date</td>
+          <td style="padding: 8px 0; font-size: 14px; text-align: right;">${paymentDate}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(47,61,56,0.4);">Description</td>
+          <td style="padding: 8px 0; font-size: 14px; text-align: right;">Day Pass — The Spot</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(47,61,56,0.4);">Amount paid</td>
+          <td style="padding: 8px 0; font-size: 16px; font-weight: bold; text-align: right; color: #2F3D38;">£9.99</td>
+        </tr>
+      </table>
+    </div>
+    <div class="info-box" style="margin-top: 16px;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(47,61,56,0.4);">Booking date</td>
           <td style="padding: 8px 0; font-size: 14px; text-align: right;">${formattedDate}</td>
         </tr>
         <tr>
@@ -190,17 +217,61 @@ export function dayPassConfirmationEmail(
           <td style="padding: 8px 0; font-size: 14px; text-align: right;">10 hours</td>
         </tr>
         <tr>
-          <td style="padding: 8px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(47,61,56,0.4);">Check-in Code</td>
-          <td style="padding: 8px 0; font-size: 14px; text-align: right; font-family: monospace;">${qrCode.slice(0, 8).toUpperCase()}</td>
+          <td style="padding: 8px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(47,61,56,0.4);">Location</td>
+          <td style="padding: 8px 0; font-size: 14px; text-align: right;">14 King Square, Bristol BS2 8JH</td>
         </tr>
       </table>
     </div>
-    <p>Show your QR code at check-in. You can find it in your dashboard:</p>
+    <p style="margin-top: 24px;">Your QR code for check-in is in your dashboard:</p>
     <p style="text-align: center; margin: 24px 0;">
       <a href="${APP_URL}/dashboard/bookings" class="button">View My Bookings</a>
     </p>
-    <p style="font-size: 13px; color: rgba(47,61,56,0.4);">14 King Square, BS2 8JH, Bristol</p>
     <p style="color: rgba(47,61,56,0.4); font-size: 13px; margin-top: 16px;">The Spot Team</p>
+  `);
+}
+
+// ─── REFUND EMAILS ───
+
+export function refundApprovedEmail(name: string, bookingDate: string) {
+  const formattedDate = new Date(bookingDate + "T00:00:00").toLocaleDateString("en-GB", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric",
+  });
+
+  return layout(`
+    <h1>Refund approved</h1>
+    <p>Hi ${name || "there"},</p>
+    <p>Your refund request for the day pass on ${formattedDate} has been approved.</p>
+    <div class="info-box">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(47,61,56,0.4);">Amount</td>
+          <td style="padding: 8px 0; font-size: 14px; text-align: right;">£9.99</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(47,61,56,0.4);">Date</td>
+          <td style="padding: 8px 0; font-size: 14px; text-align: right;">${formattedDate}</td>
+        </tr>
+      </table>
+    </div>
+    <p>The refund will be returned to your original payment method within 5–10 business days.</p>
+    <p style="color: rgba(47,61,56,0.4); font-size: 13px; margin-top: 24px;">The Spot Team</p>
+  `);
+}
+
+export function refundDeniedEmail(name: string, bookingDate: string) {
+  const formattedDate = new Date(bookingDate + "T00:00:00").toLocaleDateString("en-GB", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric",
+  });
+
+  return layout(`
+    <h1>Refund request update</h1>
+    <p>Hi ${name || "there"},</p>
+    <p>Your refund request for the day pass on ${formattedDate} has been reviewed. We're unable to process a refund at this time.</p>
+    <p>Your booking remains confirmed. If you have any questions, please get in touch.</p>
+    <p style="text-align: center; margin: 24px 0;">
+      <a href="${APP_URL}/dashboard/bookings" class="button">View My Bookings</a>
+    </p>
+    <p style="color: rgba(47,61,56,0.4); font-size: 13px; margin-top: 24px;">The Spot Team</p>
   `);
 }
 

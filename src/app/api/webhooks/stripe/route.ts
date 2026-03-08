@@ -97,12 +97,20 @@ export async function POST(request: NextRequest) {
         if (profile?.email && booking) {
           sendEmail({
             to: profile.email,
-            subject: "Day pass confirmed - The Spot",
+            subject: "Your receipt — The Spot day pass",
             html: dayPassConfirmationEmail(
               profile.full_name || "",
               booking.booking_date,
-              booking.qr_code
+              booking.qr_code,
+              paymentIntent
             ),
+          }).catch(() => {});
+
+          // Notify The Career Spot
+          sendEmail({
+            to: "thecareerspot0@gmail.com",
+            subject: `New day pass booked — ${booking.booking_date}`,
+            html: `<p><strong>${profile.full_name || profile.email}</strong> (${profile.email}) has purchased a day pass for <strong>${booking.booking_date}</strong>. Amount: £9.99.</p>`,
           }).catch(() => {});
         }
       }

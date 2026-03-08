@@ -11,10 +11,10 @@ export default function Home() {
       <Navbar />
       <main>
         {/* Hero */}
-        <section className="relative min-h-screen flex items-center justify-center bg-forest overflow-hidden pt-20 md:pt-0 pb-32 md:pb-0">
+        <section className="relative min-h-screen flex items-center justify-center bg-forest overflow-hidden pt-20 md:pt-0">
           <div className="absolute inset-0">
-            <div className="absolute top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-sage/10 blur-[120px]" />
-            <div className="absolute bottom-1/4 -right-1/4 w-[500px] h-[500px] rounded-full bg-cocoa/10 blur-[120px]" />
+            <div className="hidden md:block absolute top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full bg-sage/10 blur-[120px]" />
+            <div className="hidden md:block absolute bottom-1/4 -right-1/4 w-[500px] h-[500px] rounded-full bg-cocoa/10 blur-[120px]" />
           </div>
 
           <div className="relative z-10 max-w-5xl mx-auto px-6 w-full">
@@ -48,15 +48,6 @@ export default function Home() {
             </AnimateIn>
           </div>
 
-          {/* Fixed mobile CTA */}
-          <div className="fixed bottom-0 left-0 right-0 md:hidden bg-gradient-to-t from-forest to-forest/0 pt-8 pb-6 px-6 z-40">
-            <Link
-              href="/day-pass"
-              className="block w-full bg-camel text-forest px-6 py-4 text-sm tracking-widest uppercase hover:bg-camel-light transition-colors duration-300 text-center"
-            >
-              Book a Day Pass
-            </Link>
-          </div>
         </section>
 
         {/* Membership Pricing */}
@@ -116,7 +107,7 @@ export default function Home() {
                     href="/day-pass"
                     className="block w-full bg-forest text-cream px-6 py-3 text-sm tracking-widest uppercase hover:bg-forest-light transition-colors text-center"
                   >
-                    Book a Day Pass
+                    View Availability
                   </Link>
                 </div>
               </AnimateIn>

@@ -1,6 +1,9 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import { sendEmail } from "@/lib/email/sendEmail";
+import { refundApprovedEmail, refundDeniedEmail } from "@/lib/email/templates";
 
 export async function getTodayStats() {
   const supabase = createAdminClient();
@@ -152,4 +155,138 @@ export async function getBookingsForDate(date: string) {
   }
 
   return data || [];
+}
+
+export async function getRefundRequests() {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from("bookings")
+    .select(`
+      *,
+      profiles:user_id (full_name, email)
+    `)
+    .eq("status", "cancellation_requested")
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    console.error("Fetch refund requests error:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+export async function approveRefund(bookingId: string) {
+  const supabase = createAdminClient();
+  const authClient = await createClient();
+  const {
+    data: { user },
+  } = await authClient.auth.getUser();
+
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  const { data: adminProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (adminProfile?.role !== "admin") {
+    return { success: false, error: "Not authorized" };
+  }
+
+  const { data: booking } = await supabase
+    .from("bookings")
+    .select("*")
+    .eq("id", bookingId)
+    .eq("status", "cancellation_requested")
+    .single();
+
+  if (!booking) return { success: false, error: "Booking not found" };
+
+  // Issue Stripe refund if booking was paid
+  if (booking.stripe_session_id && booking.amount_paid > 0) {
+    try {
+      const { getCheckoutSession, createRefund } = await import("@/lib/stripe");
+      const session = await getCheckoutSession(booking.stripe_session_id);
+      if (session.payment_intent) {
+        await createRefund(session.payment_intent as string);
+      }
+    } catch (err) {
+      console.error("Stripe refund error:", err);
+      return { success: false, error: "Failed to issue Stripe refund" };
+    }
+  }
+
+  await supabase
+    .from("bookings")
+    .update({ status: "cancelled", updated_at: new Date().toISOString() })
+    .eq("id", bookingId);
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, email")
+    .eq("id", booking.user_id)
+    .single();
+
+  if (profile?.email) {
+    sendEmail({
+      to: profile.email,
+      subject: "Refund approved - The Spot",
+      html: refundApprovedEmail(profile.full_name || "", booking.booking_date),
+    }).catch(() => {});
+  }
+
+  return { success: true };
+}
+
+export async function denyRefund(bookingId: string) {
+  const supabase = createAdminClient();
+  const authClient = await createClient();
+  const {
+    data: { user },
+  } = await authClient.auth.getUser();
+
+  if (!user) return { success: false, error: "Not authenticated" };
+
+  const { data: adminProfile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (adminProfile?.role !== "admin") {
+    return { success: false, error: "Not authorized" };
+  }
+
+  const { data: booking } = await supabase
+    .from("bookings")
+    .select("*")
+    .eq("id", bookingId)
+    .eq("status", "cancellation_requested")
+    .single();
+
+  if (!booking) return { success: false, error: "Booking not found" };
+
+  await supabase
+    .from("bookings")
+    .update({ status: "confirmed", updated_at: new Date().toISOString() })
+    .eq("id", bookingId);
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name, email")
+    .eq("id", booking.user_id)
+    .single();
+
+  if (profile?.email) {
+    sendEmail({
+      to: profile.email,
+      subject: "Refund request update - The Spot",
+      html: refundDeniedEmail(profile.full_name || "", booking.booking_date),
+    }).catch(() => {});
+  }
+
+  return { success: true };
 }

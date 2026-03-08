@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Booking } from "@/lib/supabase/types";
-import { cancelBooking } from "@/lib/actions/bookings";
+import { cancelBooking, requestRefund } from "@/lib/actions/bookings";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 
 type BookingCardProps = {
@@ -15,33 +15,62 @@ const statusStyles: Record<string, string> = {
   pending: "bg-camel/20 text-cocoa",
   cancelled: "bg-forest/10 text-forest/40",
   checked_in: "bg-camel/20 text-forest",
+  cancellation_requested: "bg-cocoa/20 text-cocoa",
 };
 
+const statusLabels: Record<string, string> = {
+  cancellation_requested: "Refund pending",
+};
+
+const REFUND_REASONS = [
+  "Change of plans",
+  "Unable to attend",
+  "Booked wrong date",
+  "Other",
+];
+
 export default function BookingCard({ booking, showQR = false }: BookingCardProps) {
-  const [cancelling, setCancelling] = useState(false);
-  const [cancelled, setCancelled] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [localStatus, setLocalStatus] = useState(booking.status);
   const [error, setError] = useState("");
+  const [showRefundForm, setShowRefundForm] = useState(false);
+  const [reason, setReason] = useState("");
+
+  const today = new Date().toISOString().split("T")[0];
+  const isFuture = booking.booking_date > today;
+
+  const handleRequestRefund = async () => {
+    if (!reason) return;
+    setLoading(true);
+    setError("");
+
+    const result = await requestRefund(booking.id, reason);
+    if (result.success) {
+      setLocalStatus("cancellation_requested");
+      setShowRefundForm(false);
+    } else {
+      setError(result.error || "Failed to request refund");
+    }
+    setLoading(false);
+  };
 
   const handleCancel = async () => {
     if (!confirm("Are you sure you want to cancel this booking?")) return;
-    setCancelling(true);
+    setLoading(true);
     setError("");
 
     const result = await cancelBooking(booking.id);
     if (result.success) {
-      setCancelled(true);
+      setLocalStatus("cancelled");
     } else {
       setError(result.error || "Failed to cancel");
     }
-    setCancelling(false);
+    setLoading(false);
   };
 
-  const isCancellable =
-    !cancelled &&
-    booking.status === "confirmed" &&
-    booking.booking_date > new Date().toISOString().split("T")[0];
-
-  const displayStatus = cancelled ? "cancelled" : booking.status;
+  const displayStatus = localStatus;
+  const showRefundButton = localStatus === "confirmed" && isFuture && booking.amount_paid > 0;
+  const showCancelButton = localStatus === "confirmed" && isFuture && booking.amount_paid === 0;
 
   return (
     <div className="bg-white border border-forest/10 p-6">
@@ -61,7 +90,7 @@ export default function BookingCard({ booking, showQR = false }: BookingCardProp
                 statusStyles[displayStatus] || "bg-forest/10 text-forest/50"
               }`}
             >
-              {displayStatus.replace("_", " ")}
+              {statusLabels[displayStatus] ?? displayStatus.replace(/_/g, " ")}
             </span>
           </div>
 
@@ -75,18 +104,59 @@ export default function BookingCard({ booking, showQR = false }: BookingCardProp
 
           {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
 
-          {isCancellable && (
+          {showRefundButton && !showRefundForm && (
+            <button
+              onClick={() => setShowRefundForm(true)}
+              className="text-cocoa/70 text-sm mt-3 hover:text-cocoa transition-colors"
+            >
+              Request refund
+            </button>
+          )}
+
+          {showRefundButton && showRefundForm && (
+            <div className="mt-4 border border-forest/10 p-4 bg-forest/5">
+              <p className="text-sm text-forest/70 mb-3">Why do you want a refund?</p>
+              <select
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className="w-full border border-forest/20 bg-white px-3 py-2 text-sm text-forest mb-3 focus:outline-none focus:border-camel"
+              >
+                <option value="">Select a reason...</option>
+                {REFUND_REASONS.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+              <p className="text-xs text-forest/40 mb-3">Our team will review your request and respond within 1–3 business days.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleRequestRefund}
+                  disabled={loading || !reason}
+                  className="bg-forest text-cream text-xs tracking-widest uppercase px-4 py-2 hover:bg-forest/80 transition-colors disabled:opacity-40"
+                >
+                  {loading ? "Submitting..." : "Submit request"}
+                </button>
+                <button
+                  onClick={() => { setShowRefundForm(false); setReason(""); }}
+                  className="text-forest/50 text-xs hover:text-forest transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {showCancelButton && (
             <button
               onClick={handleCancel}
-              disabled={cancelling}
+              disabled={loading}
               className="text-red-600/70 text-sm mt-3 hover:text-red-600 transition-colors disabled:opacity-50"
             >
-              {cancelling ? "Cancelling..." : "Cancel booking"}
+              {loading ? "Cancelling..." : "Cancel booking"}
             </button>
           )}
         </div>
 
-        {showQR && booking.status === "confirmed" && !booking.qr_used && (
+        {showQR && localStatus === "confirmed" && !booking.qr_used && (
           <div className="shrink-0">
             <QRCodeDisplay code={booking.qr_code} size={140} />
           </div>

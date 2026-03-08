@@ -95,6 +95,10 @@ export async function createMembershipCheckout(
   return session;
 }
 
+export async function createRefund(paymentIntentId: string) {
+  return stripe.refunds.create({ payment_intent: paymentIntentId });
+}
+
 export async function getCheckoutSession(sessionId: string) {
   const session = await stripe.checkout.sessions.retrieve(sessionId);
   return session;
