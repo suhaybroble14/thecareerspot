@@ -267,6 +267,34 @@ export async function getRevenueSummary() {
   };
 }
 
+export async function getPendingRefundsForOverview() {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from("bookings")
+    .select(`
+      id,
+      booking_date,
+      amount_paid,
+      refund_reason,
+      updated_at,
+      profiles:user_id (full_name, email)
+    `)
+    .eq("status", "cancellation_requested")
+    .order("updated_at", { ascending: false });
+
+  if (error) return [];
+
+  return (data || []) as Array<{
+    id: string;
+    booking_date: string;
+    amount_paid: number;
+    refund_reason: string | null;
+    updated_at: string;
+    profiles: { full_name: string | null; email: string | null } | { full_name: string | null; email: string | null }[] | null;
+  }>;
+}
+
 export async function getNotificationCounts() {
   const supabase = createAdminClient();
   const today = new Date().toISOString().split("T")[0];
