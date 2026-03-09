@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { getNotificationCounts } from "@/lib/actions/admin";
+
+type Notifications = Awaited<ReturnType<typeof getNotificationCounts>>;
 
 const adminLinks = [
   {
@@ -88,11 +91,68 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notifications>({
+    pendingRefunds: 0,
+    todaysPurchases: [],
+  });
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const data = await getNotificationCounts();
+      setNotifications(data);
+    } catch {
+      // fail silently
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60000);
+    return () => clearInterval(interval);
+  }, [fetchNotifications]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
+      }
+    };
+    if (notifOpen) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [notifOpen]);
 
   const isActive = (href: string) => {
     if (href === "/admin") return pathname === "/admin";
     return pathname.startsWith(href);
   };
+
+  const NavLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => (
+    <>
+      {adminLinks.map((link) => (
+        <Link
+          key={link.href}
+          href={link.href}
+          onClick={onLinkClick}
+          className={`flex items-center gap-3 px-4 py-3 text-sm rounded transition-colors ${
+            isActive(link.href)
+              ? "bg-cream/15 text-cream"
+              : "text-cream/50 hover:bg-cream/5 hover:text-cream/80"
+          }`}
+        >
+          {link.icon}
+          {link.label}
+          {link.href === "/admin/refunds" && notifications.pendingRefunds > 0 && (
+            <span className="ml-auto w-5 h-5 bg-camel text-cocoa text-[9px] font-bold rounded-full flex items-center justify-center shrink-0">
+              {notifications.pendingRefunds > 9 ? "9+" : notifications.pendingRefunds}
+            </span>
+          )}
+        </Link>
+      ))}
+    </>
+  );
 
   return (
     <div className="min-h-screen bg-forest/[0.03]">
@@ -132,6 +192,108 @@ export default function AdminLayout({
             </button>
           </form>
 
+          {/* Notification bell */}
+          <div className="relative" ref={notifRef}>
+            <button
+              onClick={() => setNotifOpen(!notifOpen)}
+              className="relative text-cream/60 hover:text-cream transition-colors p-1"
+              aria-label="Notifications"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+              </svg>
+              {notifications.pendingRefunds > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-camel text-cocoa text-[9px] font-bold rounded-full flex items-center justify-center">
+                  {notifications.pendingRefunds > 9 ? "9+" : notifications.pendingRefunds}
+                </span>
+              )}
+            </button>
+
+            {/* Dropdown */}
+            <AnimatePresence>
+              {notifOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute top-full right-0 mt-2 w-80 bg-white shadow-xl border border-forest/10 z-50"
+                >
+                  <div className="px-4 py-3 border-b border-forest/10 flex items-center justify-between">
+                    <p className="text-xs tracking-widest uppercase text-forest/50 font-medium">Notifications</p>
+                    <button
+                      onClick={fetchNotifications}
+                      className="text-xs text-forest/30 hover:text-forest transition-colors"
+                    >
+                      Refresh
+                    </button>
+                  </div>
+
+                  {/* Pending refunds */}
+                  {notifications.pendingRefunds > 0 && (
+                    <Link href="/admin/refunds" onClick={() => setNotifOpen(false)}>
+                      <div className="flex items-center gap-3 px-4 py-3 hover:bg-forest/5 transition-colors border-b border-forest/5">
+                        <div className="w-8 h-8 bg-camel/20 rounded-full flex items-center justify-center shrink-0">
+                          <span className="text-camel text-xs font-bold">{notifications.pendingRefunds}</span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm text-forest font-medium">
+                            Refund request{notifications.pendingRefunds !== 1 ? "s" : ""}
+                          </p>
+                          <p className="text-xs text-forest/50">
+                            {notifications.pendingRefunds} pending your review
+                          </p>
+                        </div>
+                        <svg className="w-4 h-4 text-forest/30 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                        </svg>
+                      </div>
+                    </Link>
+                  )}
+
+                  {/* Today's purchases */}
+                  {notifications.todaysPurchases.length > 0 && (
+                    <div>
+                      <div className="px-4 py-2 bg-forest/[0.03] border-b border-forest/5">
+                        <p className="text-[10px] tracking-widest uppercase text-forest/40">
+                          Today&apos;s day passes
+                        </p>
+                      </div>
+                      {notifications.todaysPurchases.map((p) => (
+                        <div
+                          key={p.id}
+                          className="flex items-center justify-between px-4 py-3 border-b border-forest/5"
+                        >
+                          <div>
+                            <p className="text-sm text-forest">
+                              {p.profiles?.full_name || p.profiles?.email || "Unknown"}
+                            </p>
+                            <p className="text-xs text-forest/50">
+                              £{p.amount_paid.toFixed(2)} ·{" "}
+                              {new Date(p.created_at).toLocaleTimeString("en-GB", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </p>
+                          </div>
+                          <span className="text-[10px] tracking-widest uppercase px-2 py-1 bg-sage/10 text-sage shrink-0">
+                            Paid
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {notifications.pendingRefunds === 0 && notifications.todaysPurchases.length === 0 && (
+                    <div className="px-4 py-8 text-center">
+                      <p className="text-forest/40 text-sm">All caught up.</p>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           <button
             onClick={() => setMobileNavOpen(!mobileNavOpen)}
             className="md:hidden text-cream p-1"
@@ -152,20 +314,7 @@ export default function AdminLayout({
         {/* Desktop sidebar */}
         <aside className="hidden md:flex flex-col w-60 fixed top-16 bottom-0 bg-cocoa/95 py-6 px-3">
           <nav className="flex flex-col gap-1">
-            {adminLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center gap-3 px-4 py-3 text-sm rounded transition-colors ${
-                  isActive(link.href)
-                    ? "bg-cream/15 text-cream"
-                    : "text-cream/50 hover:bg-cream/5 hover:text-cream/80"
-                }`}
-              >
-                {link.icon}
-                {link.label}
-              </Link>
-            ))}
+            <NavLinks />
           </nav>
         </aside>
 
@@ -179,21 +328,7 @@ export default function AdminLayout({
               className="fixed top-16 left-0 right-0 z-40 bg-cocoa border-b border-cream/10 md:hidden"
             >
               <nav className="flex flex-col p-3">
-                {adminLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileNavOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 text-sm rounded transition-colors ${
-                      isActive(link.href)
-                        ? "bg-cream/15 text-cream"
-                        : "text-cream/50 hover:bg-cream/5"
-                    }`}
-                  >
-                    {link.icon}
-                    {link.label}
-                  </Link>
-                ))}
+                <NavLinks onLinkClick={() => setMobileNavOpen(false)} />
               </nav>
             </motion.div>
           )}

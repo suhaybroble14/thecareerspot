@@ -267,6 +267,45 @@ export async function getRevenueSummary() {
   };
 }
 
+export async function getNotificationCounts() {
+  const supabase = createAdminClient();
+  const today = new Date().toISOString().split("T")[0];
+
+  const { count: refundCount } = await supabase
+    .from("bookings")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "cancellation_requested");
+
+  const { data: purchases } = await supabase
+    .from("bookings")
+    .select(`
+      id,
+      booking_date,
+      amount_paid,
+      created_at,
+      profiles:user_id (full_name, email)
+    `)
+    .eq("booking_date", today)
+    .eq("status", "confirmed")
+    .order("created_at", { ascending: false });
+
+  const normalizedPurchases = (purchases || []).map((p) => ({
+    id: p.id as string,
+    booking_date: p.booking_date as string,
+    amount_paid: p.amount_paid as number,
+    created_at: p.created_at as string,
+    profiles: (Array.isArray(p.profiles) ? p.profiles[0] ?? null : p.profiles) as {
+      full_name: string | null;
+      email: string | null;
+    } | null,
+  }));
+
+  return {
+    pendingRefunds: refundCount || 0,
+    todaysPurchases: normalizedPurchases,
+  };
+}
+
 export async function getHireEnquiries() {
   const supabase = createAdminClient();
 

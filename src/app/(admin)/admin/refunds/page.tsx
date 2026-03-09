@@ -8,6 +8,7 @@ type RefundRequest = {
   booking_date: string;
   amount_paid: number;
   stripe_session_id: string | null;
+  refund_reason: string | null;
   updated_at: string;
   profiles: { full_name: string | null; email: string | null } | null;
 };
@@ -114,6 +115,11 @@ export default function RefundsPage() {
                     <span className="text-forest/50">
                       Requested: <span className="text-forest">{formatRequested(req.updated_at)}</span>
                     </span>
+                    {req.refund_reason && (
+                      <span className="text-forest/50">
+                        Reason: <span className="text-forest">{req.refund_reason}</span>
+                      </span>
+                    )}
                   </div>
 
                   {message?.id === req.id && (

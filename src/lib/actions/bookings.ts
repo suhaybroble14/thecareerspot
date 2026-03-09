@@ -81,7 +81,7 @@ export async function requestRefund(bookingId: string, reason: string) {
   const admin = createAdminClient();
   const { error } = await admin
     .from("bookings")
-    .update({ status: "cancellation_requested", updated_at: new Date().toISOString() })
+    .update({ status: "cancellation_requested", refund_reason: reason, updated_at: new Date().toISOString() })
     .eq("id", bookingId);
 
   if (error) return { success: false, error: "Failed to request refund" };
