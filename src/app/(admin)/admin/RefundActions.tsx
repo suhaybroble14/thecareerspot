@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 export default function RefundActions({ bookingId }: { bookingId: string }) {
   const [processing, setProcessing] = useState<"approve" | "deny" | null>(null);
-  const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+  const [message, setMessage] = useState<{ text: string; type: "success" | "error" | "warning" } | null>(null);
   const router = useRouter();
 
   const handle = async (action: "approve" | "deny") => {
@@ -21,7 +21,11 @@ export default function RefundActions({ bookingId }: { bookingId: string }) {
     const result = action === "approve" ? await approveRefund(bookingId) : await denyRefund(bookingId);
 
     if (result.success) {
-      router.refresh();
+      if ("warning" in result && result.warning) {
+        setMessage({ text: result.warning as string, type: "warning" });
+      } else {
+        router.refresh();
+      }
     } else {
       setMessage({ text: result.error || "Something went wrong.", type: "error" });
       setProcessing(null);
@@ -29,7 +33,11 @@ export default function RefundActions({ bookingId }: { bookingId: string }) {
   };
 
   if (message) {
-    return <p className="text-xs text-red-600">{message.text}</p>;
+    return (
+      <p className={`text-xs max-w-xs ${message.type === "warning" ? "text-camel" : "text-red-600"}`}>
+        {message.text}
+      </p>
+    );
   }
 
   return (

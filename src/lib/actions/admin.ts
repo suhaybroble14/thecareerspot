@@ -206,6 +206,7 @@ export async function approveRefund(bookingId: string) {
   if (!booking) return { success: false, error: "Booking not found" };
 
   // Issue Stripe refund if booking was paid
+  let manualRefundNeeded = false;
   if (booking.stripe_session_id && booking.amount_paid > 0) {
     try {
       const { getCheckoutSession, createRefund } = await import("@/lib/stripe");
@@ -213,12 +214,17 @@ export async function approveRefund(bookingId: string) {
       if (session.payment_intent) {
         await createRefund(session.payment_intent as string);
       } else {
-        return { success: false, error: "No payment found on this booking — refund it manually in Stripe dashboard." };
+        manualRefundNeeded = true;
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to issue Stripe refund";
-      console.error("Stripe refund error:", err);
-      return { success: false, error: `Stripe error: ${message}` };
+      const message = err instanceof Error ? err.message : "Unknown error";
+      if (message.includes("No such")) {
+        // Test booking or different Stripe account — cancel booking, admin must refund manually
+        manualRefundNeeded = true;
+      } else {
+        console.error("Stripe refund error:", err);
+        return { success: false, error: `Stripe error: ${message}` };
+      }
     }
   }
 
@@ -239,6 +245,10 @@ export async function approveRefund(bookingId: string) {
       subject: "Refund approved - The Spot",
       html: refundApprovedEmail(profile.full_name || "", booking.booking_date),
     }).catch(() => {});
+  }
+
+  if (manualRefundNeeded) {
+    return { success: true, warning: "Booking cancelled and member notified. The Stripe payment was not found automatically — please issue the £" + booking.amount_paid.toFixed(2) + " refund manually in your Stripe dashboard." };
   }
 
   return { success: true };
