@@ -212,10 +212,13 @@ export async function approveRefund(bookingId: string) {
       const session = await getCheckoutSession(booking.stripe_session_id);
       if (session.payment_intent) {
         await createRefund(session.payment_intent as string);
+      } else {
+        return { success: false, error: "No payment found on this booking — refund it manually in Stripe dashboard." };
       }
     } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to issue Stripe refund";
       console.error("Stripe refund error:", err);
-      return { success: false, error: "Failed to issue Stripe refund" };
+      return { success: false, error: `Stripe error: ${message}` };
     }
   }
 

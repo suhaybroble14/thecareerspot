@@ -43,6 +43,16 @@ export async function GET(request: Request) {
       } catch {
         // Non-fatal — profile save failed but login still succeeds
       }
+      // Redirect admins straight to /admin
+      try {
+        const { data: { user: loggedInUser } } = await supabase.auth.getUser();
+        if (loggedInUser) {
+          const { data: profile } = await supabase.from("profiles").select("role").eq("id", loggedInUser.id).single();
+          if (profile?.role === "admin") {
+            return NextResponse.redirect(`${origin}/admin`);
+          }
+        }
+      } catch { /* non-fatal */ }
       return NextResponse.redirect(`${origin}${next}`);
     }
     console.error("[auth/callback] exchangeCodeForSession failed:", exchangeError.message);
