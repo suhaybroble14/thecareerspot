@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import QRScanner from "@/components/QRScanner";
 
 type CheckInResult = {
   success?: boolean;
@@ -12,7 +11,6 @@ type CheckInResult = {
 };
 
 export default function CheckInPage() {
-  const [mode, setMode] = useState<"scan" | "manual">("scan");
   const [manualCode, setManualCode] = useState("");
   const [processing, setProcessing] = useState(false);
   const [result, setResult] = useState<CheckInResult | null>(null);
@@ -48,7 +46,7 @@ export default function CheckInPage() {
     setProcessing(false);
   }, [processing]);
 
-  const handleManualSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (manualCode.trim()) {
       handleCheckIn(manualCode.trim());
@@ -64,11 +62,10 @@ export default function CheckInPage() {
     <>
       <h1 className="font-serif text-3xl text-forest mb-2">Check In</h1>
       <p className="text-forest/50 text-sm mb-8">
-        Scan a QR code or enter a code manually to check someone in.
+        Enter a QR code or membership ID to check someone in.
       </p>
 
-      {/* Result display */}
-      {result && (
+      {result ? (
         <div
           className={`p-6 mb-8 ${
             result.success
@@ -86,16 +83,10 @@ export default function CheckInPage() {
                   viewBox="0 0 24 24"
                   strokeWidth={2}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M5 13l4 4L19 7"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h2 className="font-serif text-2xl text-forest mb-1">
-                Checked in
-              </h2>
+              <h2 className="font-serif text-2xl text-forest mb-1">Checked in</h2>
               <p className="text-forest text-lg font-medium">{result.name}</p>
               <p className="text-forest/50 text-sm capitalize">
                 {result.type?.replace("_", " ")}
@@ -103,9 +94,9 @@ export default function CheckInPage() {
               </p>
               <button
                 onClick={reset}
-                className="mt-6 bg-forest text-cream px-6 py-3 text-sm tracking-widest uppercase hover:bg-forest-light transition-colors"
+                className="mt-6 bg-forest text-cream px-6 py-3 text-sm tracking-widest uppercase hover:bg-forest/80 transition-colors"
               >
-                Scan Next
+                Check In Another
               </button>
             </div>
           ) : (
@@ -118,96 +109,49 @@ export default function CheckInPage() {
                   viewBox="0 0 24 24"
                   strokeWidth={2}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </div>
-              <h2 className="font-serif text-2xl text-forest mb-1">
-                Check-in failed
-              </h2>
+              <h2 className="font-serif text-2xl text-forest mb-1">Check-in failed</h2>
               <p className="text-red-600 text-sm">{result.error}</p>
               <button
                 onClick={reset}
-                className="mt-6 bg-forest text-cream px-6 py-3 text-sm tracking-widest uppercase hover:bg-forest-light transition-colors"
+                className="mt-6 bg-forest text-cream px-6 py-3 text-sm tracking-widest uppercase hover:bg-forest/80 transition-colors"
               >
                 Try Again
               </button>
             </div>
           )}
         </div>
-      )}
-
-      {/* Mode toggle */}
-      {!result && (
-        <>
-          <div className="flex gap-2 mb-6">
-            <button
-              onClick={() => setMode("scan")}
-              className={`px-4 py-2 text-sm tracking-widest uppercase transition-colors ${
-                mode === "scan"
-                  ? "bg-forest text-cream"
-                  : "border border-forest/20 text-forest hover:bg-forest/5"
-              }`}
-            >
-              Camera
-            </button>
-            <button
-              onClick={() => setMode("manual")}
-              className={`px-4 py-2 text-sm tracking-widest uppercase transition-colors ${
-                mode === "manual"
-                  ? "bg-forest text-cream"
-                  : "border border-forest/20 text-forest hover:bg-forest/5"
-              }`}
-            >
-              Manual Entry
-            </button>
-          </div>
-
-          {mode === "scan" && (
-            <div className="bg-white border border-forest/10 p-6 mb-6">
-              <QRScanner onScan={handleCheckIn} active={!processing} />
-              {processing && (
-                <p className="text-center text-forest/50 text-sm mt-4">
-                  Processing...
-                </p>
-              )}
+      ) : (
+        <div className="bg-white border border-forest/10 p-6 max-w-md">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label
+                htmlFor="code"
+                className="block text-xs tracking-widest uppercase text-forest/60 mb-2"
+              >
+                QR Code or Membership ID
+              </label>
+              <input
+                id="code"
+                type="text"
+                value={manualCode}
+                onChange={(e) => setManualCode(e.target.value)}
+                className="w-full bg-white border border-forest/10 px-5 py-4 text-sm text-forest placeholder:text-forest/30 focus:outline-none focus:border-camel transition-colors font-mono"
+                placeholder="Paste or type the code"
+                autoFocus
+              />
             </div>
-          )}
-
-          {mode === "manual" && (
-            <div className="bg-white border border-forest/10 p-6 max-w-md">
-              <form onSubmit={handleManualSubmit} className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="code"
-                    className="block text-xs tracking-widest uppercase text-forest/60 mb-2"
-                  >
-                    QR Code or Membership ID
-                  </label>
-                  <input
-                    id="code"
-                    type="text"
-                    value={manualCode}
-                    onChange={(e) => setManualCode(e.target.value)}
-                    className="w-full bg-white border border-forest/10 px-5 py-4 text-sm text-forest placeholder:text-forest/30 focus:outline-none focus:border-camel transition-colors font-mono"
-                    placeholder="Paste or type the code"
-                    autoFocus
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={processing || !manualCode.trim()}
-                  className="w-full bg-forest text-cream px-6 py-4 text-sm tracking-widest uppercase hover:bg-forest-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {processing ? "Checking..." : "Check In"}
-                </button>
-              </form>
-            </div>
-          )}
-        </>
+            <button
+              type="submit"
+              disabled={processing || !manualCode.trim()}
+              className="w-full bg-forest text-cream px-6 py-4 text-sm tracking-widest uppercase hover:bg-forest/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {processing ? "Checking..." : "Check In"}
+            </button>
+          </form>
+        </div>
       )}
     </>
   );
