@@ -104,7 +104,7 @@ export default function RefundsPage() {
       year: "numeric",
     });
 
-  const totalRefunded = history.reduce((sum, h) => sum + h.amount_paid, 0);
+  const totalRefunded = history.reduce((sum, h) => sum + (h.amount_paid || 0), 0);
 
   return (
     <>
@@ -144,7 +144,7 @@ export default function RefundsPage() {
                           Booking: <span className="text-forest">{formatDate(req.booking_date)}</span>
                         </span>
                         <span className="text-forest/50">
-                          Amount: <span className="text-forest">£{req.amount_paid.toFixed(2)}</span>
+                          Amount: <span className="text-forest">£{(req.amount_paid || 0).toFixed(2)}</span>
                         </span>
                         <span className="text-forest/50">
                           Requested: <span className="text-forest">{formatDateTime(req.updated_at)}</span>
@@ -221,7 +221,7 @@ export default function RefundsPage() {
                         </div>
                         <div className="flex flex-wrap gap-x-4 mt-1 text-xs text-forest/50">
                           <span>Booking: <span className="text-forest">{formatDate(item.booking_date)}</span></span>
-                          <span>Amount: <span className="text-forest">£{item.amount_paid.toFixed(2)}</span></span>
+                          <span>Amount: <span className="text-forest">£{(item.amount_paid || 0).toFixed(2)}</span></span>
                           <span>Processed: <span className="text-forest">{formatDateTime(item.updated_at)}</span></span>
                         </div>
                         {item.refund_reason && (

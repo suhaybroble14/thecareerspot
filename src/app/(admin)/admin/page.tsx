@@ -54,7 +54,7 @@ export default async function AdminOverviewPage() {
                     <p className="text-forest/50 text-xs">{profile?.email}</p>
                     <div className="flex flex-wrap gap-x-4 mt-1 text-xs text-forest/60">
                       <span>Booking: <span className="text-forest">{formattedDate}</span></span>
-                      <span>Amount: <span className="text-forest">£{req.amount_paid.toFixed(2)}</span></span>
+                      <span>Amount: <span className="text-forest">£{(req.amount_paid || 0).toFixed(2)}</span></span>
                       <span>Requested: <span className="text-forest">{requestedOn}</span></span>
                     </div>
                     {req.refund_reason && (

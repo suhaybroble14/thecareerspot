@@ -260,7 +260,7 @@ export default function AdminLayout({
                               {p.profiles?.full_name || p.profiles?.email || "Unknown"}
                             </p>
                             <p className="text-xs text-forest/50">
-                              £{p.amount_paid.toFixed(2)} ·{" "}
+                              £{(p.amount_paid || 0).toFixed(2)} ·{" "}
                               {new Date(p.created_at).toLocaleTimeString("en-GB", {
                                 hour: "2-digit",
                                 minute: "2-digit",
