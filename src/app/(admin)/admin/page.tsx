@@ -9,10 +9,10 @@ export default async function AdminOverviewPage() {
   if (!user) redirect("/login");
 
   const [stats, recentCheckIns, pendingRefunds, revenue] = await Promise.all([
-    getTodayStats(),
-    getRecentCheckIns(),
-    getPendingRefundsForOverview(),
-    getRevenueSummary(),
+    getTodayStats().catch(() => ({ checkInsToday: 0, confirmedBookings: 0, activeMonthly: 0, pendingApplications: 0, maxCapacity: 14, currentOccupancy: 0 })),
+    getRecentCheckIns().catch(() => []),
+    getPendingRefundsForOverview().catch(() => []),
+    getRevenueSummary().catch(() => ({ totalRevenue: 0, thisMonthRevenue: 0, totalCount: 0, recentBookings: [] })),
   ]);
 
   return (

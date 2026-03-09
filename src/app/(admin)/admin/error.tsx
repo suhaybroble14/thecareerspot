@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 export default function AdminError({
+  error,
   reset,
 }: {
   error: Error & { digest?: string };
@@ -26,9 +27,14 @@ export default function AdminError({
       <h2 className="font-serif text-xl text-forest mb-2">
         Something went wrong
       </h2>
-      <p className="text-forest/50 text-sm mb-6">
+      <p className="text-forest/50 text-sm mb-2">
         There was an error loading this admin page.
       </p>
+      {error?.message && (
+        <p className="text-red-600 text-xs font-mono mb-6 max-w-md mx-auto bg-red-50 px-4 py-2 rounded">
+          {error.message}
+        </p>
+      )}
       <div className="flex gap-3 justify-center">
         <button
           onClick={reset}
