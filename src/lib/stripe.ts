@@ -1,6 +1,8 @@
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!);
+}
 
 export const MEMBERSHIP_PLANS = {
   day_pass: {
@@ -30,7 +32,7 @@ export async function createDayPassCheckout(
 ) {
   const plan = MEMBERSHIP_PLANS.day_pass;
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     payment_method_types: ["card"],
     line_items: [
       {
@@ -67,7 +69,7 @@ export async function createMembershipCheckout(
 ) {
   const plan = MEMBERSHIP_PLANS["30_day"];
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     payment_method_types: ["card"],
     line_items: [
       {
@@ -96,11 +98,11 @@ export async function createMembershipCheckout(
 }
 
 export async function createRefund(paymentIntentId: string) {
-  return stripe.refunds.create({ payment_intent: paymentIntentId });
+  return getStripe().refunds.create({ payment_intent: paymentIntentId });
 }
 
 export async function getCheckoutSession(sessionId: string) {
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  const session = await getStripe().checkout.sessions.retrieve(sessionId);
   return session;
 }
 
@@ -112,7 +114,7 @@ export async function handleStripeWebhook(
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, secret);
+    event = getStripe().webhooks.constructEvent(body, signature, secret);
   } catch (err) {
     throw new Error(`Webhook signature verification failed: ${err}`);
   }
