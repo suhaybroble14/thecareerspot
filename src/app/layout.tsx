@@ -18,10 +18,6 @@ export const metadata: Metadata = {
   title: "The Spot | Work Create Connect",
   description:
     "The Career Spot is a career hub in Bristol with coworking, workshops, mentorship, and community events. Day passes and monthly memberships available.",
-  icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg",
-  },
   keywords: [
     "career development",
     "coworking",
