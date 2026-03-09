@@ -1,7 +1,5 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 type SendEmailOptions = {
   to: string;
   subject: string;
@@ -9,6 +7,7 @@ type SendEmailOptions = {
 };
 
 export async function sendEmail({ to, subject, html }: SendEmailOptions) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   const from = process.env.RESEND_FROM || "The Spot <thecareerspot0@mail.com>";
 
   try {
