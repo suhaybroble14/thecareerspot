@@ -80,62 +80,6 @@ export async function getRecentCheckIns(limit = 10) {
   return data || [];
 }
 
-export async function getAllMembers() {
-  const supabase = createAdminClient();
-
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Fetch members error:", error);
-    return [];
-  }
-
-  return data || [];
-}
-
-export async function getMemberDetail(userId: string) {
-  const supabase = createAdminClient();
-
-  const [profileRes, bookingsRes, membershipsRes, checkInsRes, notesRes] =
-    await Promise.all([
-      supabase.from("profiles").select("*").eq("id", userId).single(),
-      supabase
-        .from("bookings")
-        .select("*")
-        .eq("user_id", userId)
-        .order("booking_date", { ascending: false })
-        .limit(20),
-      supabase
-        .from("memberships")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("check_ins")
-        .select("*")
-        .eq("user_id", userId)
-        .order("checked_in_at", { ascending: false })
-        .limit(20),
-      supabase
-        .from("admin_notes")
-        .select("*")
-        .eq("target_type", "user")
-        .eq("target_id", userId)
-        .order("created_at", { ascending: false }),
-    ]);
-
-  return {
-    profile: profileRes.data,
-    bookings: bookingsRes.data || [],
-    memberships: membershipsRes.data || [],
-    checkIns: checkInsRes.data || [],
-    notes: notesRes.data || [],
-  };
-}
-
 export async function getBookingsForDate(date: string) {
   const supabase = createAdminClient();
 
@@ -153,6 +97,28 @@ export async function getBookingsForDate(date: string) {
     console.error("Fetch bookings for date error:", error);
     return [];
   }
+
+  return data || [];
+}
+
+export async function getRefundHistory() {
+  const supabase = createAdminClient();
+
+  const { data } = await supabase
+    .from("bookings")
+    .select(`
+      id,
+      booking_date,
+      amount_paid,
+      refund_reason,
+      updated_at,
+      status,
+      profiles:user_id (full_name, email)
+    `)
+    .eq("status", "cancelled")
+    .gt("amount_paid", 0)
+    .order("updated_at", { ascending: false })
+    .limit(50);
 
   return data || [];
 }
@@ -207,19 +173,23 @@ export async function approveRefund(bookingId: string) {
 
   // Issue Stripe refund if booking was paid
   let manualRefundNeeded = false;
-  if (booking.stripe_session_id && booking.amount_paid > 0) {
+  if (booking.amount_paid > 0) {
     try {
-      const { getCheckoutSession, createRefund } = await import("@/lib/stripe");
-      const session = await getCheckoutSession(booking.stripe_session_id);
-      if (session.payment_intent) {
-        await createRefund(session.payment_intent as string);
+      const { createRefund, getCheckoutSession } = await import("@/lib/stripe");
+      // Prefer stored payment intent (available for all bookings made after v5 migration)
+      const paymentIntentId = booking.stripe_payment_intent_id ||
+        (booking.stripe_session_id
+          ? (await getCheckoutSession(booking.stripe_session_id)).payment_intent as string | null
+          : null);
+
+      if (paymentIntentId) {
+        await createRefund(paymentIntentId);
       } else {
         manualRefundNeeded = true;
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
-      if (message.includes("No such")) {
-        // Test booking or different Stripe account — cancel booking, admin must refund manually
+      if (message.includes("No such") || message.includes("already been refunded")) {
         manualRefundNeeded = true;
       } else {
         console.error("Stripe refund error:", err);

@@ -2,7 +2,7 @@ import { getRevenueSummary } from "@/lib/actions/admin";
 
 export default async function RevenuePage() {
   const { totalRevenue, thisMonthRevenue, totalCount, recentBookings } =
-    await getRevenueSummary();
+    await getRevenueSummary().catch(() => ({ totalRevenue: 0, thisMonthRevenue: 0, totalCount: 0, recentBookings: [] }));
 
   return (
     <>
@@ -38,7 +38,8 @@ export default async function RevenuePage() {
       ) : (
         <div className="bg-white border border-forest/10 divide-y divide-forest/5">
           {recentBookings.map((booking: Record<string, unknown>) => {
-            const profile = booking.profiles as { full_name?: string; email?: string } | null;
+            const rawProfile = booking.profiles;
+            const profile = (Array.isArray(rawProfile) ? rawProfile[0] : rawProfile) as { full_name?: string; email?: string } | null;
             return (
               <div key={booking.id as string} className="px-5 py-4 flex items-center justify-between">
                 <div>
@@ -57,7 +58,7 @@ export default async function RevenuePage() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-forest">
-                    £{(booking.amount_paid as number).toFixed(2)}
+                    £{((booking.amount_paid as number) || 0).toFixed(2)}
                   </p>
                   <span
                     className={`text-xs tracking-widest uppercase px-2 py-0.5 ${

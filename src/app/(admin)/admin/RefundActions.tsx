@@ -18,16 +18,21 @@ export default function RefundActions({ bookingId }: { bookingId: string }) {
     setProcessing(action);
     setMessage(null);
 
-    const result = action === "approve" ? await approveRefund(bookingId) : await denyRefund(bookingId);
+    try {
+      const result = action === "approve" ? await approveRefund(bookingId) : await denyRefund(bookingId);
 
-    if (result.success) {
-      if ("warning" in result && result.warning) {
-        setMessage({ text: result.warning as string, type: "warning" });
+      if (result.success) {
+        if ("warning" in result && result.warning) {
+          setMessage({ text: result.warning as string, type: "warning" });
+        } else {
+          router.refresh();
+        }
       } else {
-        router.refresh();
+        setMessage({ text: result.error || "Something went wrong.", type: "error" });
+        setProcessing(null);
       }
-    } else {
-      setMessage({ text: result.error || "Something went wrong.", type: "error" });
+    } catch {
+      setMessage({ text: "Something went wrong. Please try again.", type: "error" });
       setProcessing(null);
     }
   };

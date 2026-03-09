@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
         .from("bookings")
         .update({
           status: "confirmed",
+          stripe_payment_intent_id: paymentIntent,
           updated_at: new Date().toISOString(),
         })
         .eq("id", metadata.bookingId)

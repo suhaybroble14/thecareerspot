@@ -67,7 +67,9 @@ export type Booking = {
   qr_code: string;
   qr_used: boolean;
   stripe_session_id: string | null;
+  stripe_payment_intent_id: string | null;
   amount_paid: number;
+  refund_reason: string | null;
   status: "pending" | "confirmed" | "cancelled" | "checked_in" | "cancellation_requested";
   created_at: string;
   updated_at: string;
@@ -97,6 +99,11 @@ export type Lead = {
   email: string;
   full_name: string | null;
   source: string;
+  phone: string | null;
+  event_type: string | null;
+  preferred_date: string | null;
+  guest_count: string | null;
+  message: string | null;
   created_at: string;
 };
 

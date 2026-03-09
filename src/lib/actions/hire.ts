@@ -23,11 +23,16 @@ export async function submitHireEnquiry(input: HireEnquiryInput) {
 
     const supabase = createAdminClient();
 
-    // Store as a lead
+    // Store as a lead with all enquiry details
     await supabase.from("leads").insert({
       full_name: input.fullName,
       email: input.email,
       source: "hire_enquiry",
+      phone: input.phone || null,
+      event_type: input.eventType || null,
+      preferred_date: input.preferredDate || null,
+      guest_count: input.guestCount || null,
+      message: input.message || null,
     }).throwOnError();
 
     // Email the admin

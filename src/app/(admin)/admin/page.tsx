@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import RefundActions from "./RefundActions";
 
 export default async function AdminOverviewPage() {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser().catch(() => null);
   if (!user) redirect("/login");
 
   const [stats, recentCheckIns, pendingRefunds, revenue] = await Promise.all([
@@ -179,10 +179,10 @@ export default async function AdminOverviewPage() {
           View Calendar
         </Link>
         <Link
-          href="/admin/members"
+          href="/admin/applications"
           className="border border-forest/20 text-forest px-6 py-3 text-sm tracking-widest uppercase hover:bg-forest/5 transition-colors"
         >
-          All Members
+          Applications
         </Link>
       </div>
     </>
