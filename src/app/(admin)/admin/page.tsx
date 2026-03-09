@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/supabase/auth";
-import { getTodayStats, getRecentCheckIns, getPendingRefundsForOverview } from "@/lib/actions/admin";
+import { getTodayStats, getRecentCheckIns, getPendingRefundsForOverview, getRevenueSummary } from "@/lib/actions/admin";
 import { redirect } from "next/navigation";
 import RefundActions from "./RefundActions";
 
@@ -8,10 +8,11 @@ export default async function AdminOverviewPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const [stats, recentCheckIns, pendingRefunds] = await Promise.all([
+  const [stats, recentCheckIns, pendingRefunds, revenue] = await Promise.all([
     getTodayStats(),
     getRecentCheckIns(),
     getPendingRefundsForOverview(),
+    getRevenueSummary(),
   ]);
 
   return (
@@ -132,11 +133,11 @@ export default async function AdminOverviewPage() {
 
       {/* ── STATS ROW ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white border border-forest/10 p-5">
-          <p className="text-xs tracking-widest uppercase text-forest/40 mb-1">Day Passes</p>
-          <p className="font-serif text-3xl text-forest">{stats.confirmedBookings}</p>
-          <p className="text-forest/40 text-xs mt-1">Booked today</p>
-        </div>
+        <Link href="/admin/revenue" className="bg-white border border-forest/10 p-5 hover:border-camel transition-colors">
+          <p className="text-xs tracking-widest uppercase text-forest/40 mb-1">This Month</p>
+          <p className="font-serif text-3xl text-forest">£{revenue.thisMonthRevenue.toFixed(0)}</p>
+          <p className="text-forest/40 text-xs mt-1">£{revenue.totalRevenue.toFixed(0)} all time</p>
+        </Link>
 
         <div className="bg-white border border-forest/10 p-5">
           <p className="text-xs tracking-widest uppercase text-forest/40 mb-1">Monthly</p>
