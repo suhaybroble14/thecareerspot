@@ -221,11 +221,11 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <Link href="/" className="group flex items-center">
             <Image
-              src="/the-spot-logo.svg"
+              src="/logo-circle.jpeg"
               alt="The Spot — Work Create Connect"
-              width={160}
-              height={50}
-              className="h-10 w-auto md:h-12 object-contain"
+              width={48}
+              height={48}
+              className="h-10 w-10 md:h-12 md:w-12 rounded-full object-cover"
               priority
             />
           </Link>
