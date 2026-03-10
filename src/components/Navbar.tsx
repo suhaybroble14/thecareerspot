@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
@@ -218,10 +219,15 @@ export default function Navbar() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-          <Link href="/" className="group flex items-center gap-2">
-            <span className="font-serif text-2xl tracking-wide text-cream">
-              THE <span className="font-bold">SP<span className="text-sage">O</span>T</span>
-            </span>
+          <Link href="/" className="group flex items-center">
+            <Image
+              src="/the-spot-logo.svg"
+              alt="The Spot — Work Create Connect"
+              width={160}
+              height={50}
+              className="h-10 w-auto md:h-12 object-contain"
+              priority
+            />
           </Link>
 
           {/* Desktop nav */}

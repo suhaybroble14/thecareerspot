@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 82" fill="none">
+  <!-- Decorative dots and horizontal lines around THE -->
+  <circle cx="18" cy="21" r="2.2" fill="#C8BEA6"/>
+  <line x1="20" y1="21" x2="96" y2="21" stroke="#C8BEA6" stroke-width="0.8"/>
+  <line x1="164" y1="21" x2="240" y2="21" stroke="#C8BEA6" stroke-width="0.8"/>
+  <circle cx="242" cy="21" r="2.2" fill="#C8BEA6"/>
+  <!-- Vertical line dropping from right dot -->
+  <line x1="242" y1="23" x2="242" y2="46" stroke="#C8BEA6" stroke-width="0.8"/>
+
+  <!-- THE -->
+  <text
+    x="130"
+    y="27"
+    text-anchor="middle"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="13"
+    font-weight="400"
+    fill="#EDE8DC"
+    letter-spacing="7"
+  >THE</text>
+
+  <!-- SPOT — S -->
+  <text
+    x="10"
+    y="68"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="52"
+    font-weight="700"
+    fill="#EDE8DC"
+    letter-spacing="1"
+  >S</text>
+
+  <!-- SPOT — P -->
+  <text
+    x="50"
+    y="68"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="52"
+    font-weight="700"
+    fill="#EDE8DC"
+    letter-spacing="1"
+  >P</text>
+
+  <!-- SPOT — O (open, with sage oval inside) -->
+  <text
+    x="96"
+    y="68"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="52"
+    font-weight="700"
+    fill="#EDE8DC"
+    letter-spacing="1"
+  >O</text>
+  <!-- Sage oval stone inside the O -->
+  <ellipse cx="123" cy="53" rx="8.5" ry="11" fill="#8A9E8C"/>
+
+  <!-- SPOT — T -->
+  <text
+    x="148"
+    y="68"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="52"
+    font-weight="700"
+    fill="#EDE8DC"
+    letter-spacing="1"
+  >T</text>
+
+  <!-- Work · Create · Connect -->
+  <text
+    x="130"
+    y="80"
+    text-anchor="middle"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="7.5"
+    fill="#8A9E8C"
+    letter-spacing="3.5"
+  >Work · Create · Connect</text>
+</svg>
